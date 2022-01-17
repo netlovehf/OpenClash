@@ -126,6 +126,9 @@ o.description = translate("Using incorrect encryption mothod may causes service 
 o = s:option(Value, "name", translate("Server Alias"))
 o.rmempty = false
 o.default = "Server - "..sid
+if not m.uci:get("openclash", sid, "name") then
+	m.uci:set("openclash", sid, "manual", 1)
+end
 
 o = s:option(Value, "server", translate("Server Address"))
 o.datatype = "host"
@@ -145,6 +148,11 @@ o:depends("type", "trojan")
 
 o = s:option(Value, "psk", translate("Psk"))
 o.rmempty = false
+o:depends("type", "snell")
+
+o = s:option(ListValue, "snell_version", translate("Version"))
+o:value("2")
+o:value("3")
 o:depends("type", "snell")
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
@@ -201,6 +209,7 @@ o:depends("type", "ssr")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "trojan")
+o:depends({type = "snell", snell_version = "3"})
 
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
@@ -316,11 +325,7 @@ o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "none")
-o:depends("obfs_vmess", "websocket")
-o:depends("obfs_vmess", "http")
-o:depends("obfs_vmess", "grpc")
-o:depends("obfs_vmess", "h2")
+o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")
 
@@ -328,8 +333,9 @@ o = s:option(Value, "servername", translate("servername"))
 o.rmempty = true
 o.datatype = "host"
 o.placeholder = translate("example.com")
-o:depends("obfs_vmess", "websocket")
-o:depends("obfs_vmess", "grpc")
+o:depends({obfs_vmess = "websocket", tls = "true"})
+o:depends({obfs_vmess = "grpc", tls = "true"})
+o:depends({obfs_vmess = "none", tls = "true"})
 
 o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true
